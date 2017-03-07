@@ -109,9 +109,11 @@ def generate_amr(graph, uriGenome, fasta_file):
 
     # differs from ectyper as we dont care about the temp results, just the final .tsv
     # direct (the main) call
-    subprocess.call(['rgi',
+    print subprocess.call(['rgi',
                      '-i', fasta_file,
                      '-o', 'outputs/' + outputname])
+
+    print fasta_file
 
     # the rgi_json call in rgitool.py isn't needed for us
     # this generates the .tsv we want
@@ -325,6 +327,7 @@ def json_return(args_dict, gene_dict):
                         else:
                             instance_dict['hitcutoff'] = args_dict['pi']
                         json_r.append(instance_dict)
+
     json_r = check_alleles(json_r)
 
     return json_r
@@ -371,7 +374,9 @@ def savvy(args_dict):
     # thousand of these)
     #remove('outputs/' + __name__ + args_dict['i'].split('/')[-1] + '.log')
     print upload_graph(graph)
-    return json_return(args_dict, ectyper_result['ectyper_dict'])
+
+    if not (args_dict['disable_serotype'] and args_dict['disable_vf'] and args_dict['disable_amr']):
+        return json_return(args_dict, ectyper_result['ectyper_dict'])
 
 if __name__ == "__main__":
     import argparse

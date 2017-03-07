@@ -49,6 +49,7 @@ app.controller('SpfyController', [
             fd.append('options.serotype', $scope.formData.options.serotype);
             fd.append('options.pi', $scope.formData.options.pi);
             $log.log(fd);
+            $scope.loading = true;
             $http.post('/upload', fd, {
                 transformRequest: angular.identity,
                 headers: {

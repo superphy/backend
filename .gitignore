@@ -12,8 +12,6 @@ app/tmp/
 .DS_Store
 *.pyc
 *.pyo
-env
-env*
 dist
 build
 *.egg
