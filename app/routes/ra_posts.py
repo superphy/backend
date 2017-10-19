@@ -162,6 +162,7 @@ def handle_singleton(jobs_dict):
 # this is a modification of the old upload() methods in views.py
 @bp_ra_posts.route('/api/v0/upload', methods=['POST'])
 def upload():
+    print 'upload(): received req. at ' + str(datetime.now().strftime("%Y-%m-%d-%H-%M"))
     recaptcha = ReCaptcha(app=current_app)
     if recaptcha.verify():
         form = request.form

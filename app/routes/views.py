@@ -36,6 +36,9 @@ def upload():
         options['serotype']=True
         options['pi']=90
 
+	# for compat w 4.3.3
+	options['bulk'] = False
+
         # processing form data
         for key, value in form.items():
             #we need to convert lower-case true/false in js to upper case in python

@@ -6,12 +6,13 @@ services:
       dockerfile: Dockerfile-spfy
     image: backend
     ports:
-    - "8000:80"
+    - "8090:80"
     depends_on:
     - redis
-    - blazegraph
     volumes:
     - /datastore
+    networks:
+      - dockernet
 
   reactapp:
     build:
@@ -19,9 +20,11 @@ services:
       dockerfile: Dockerfile-reactapp
     image: reactapp
     ports:
-    - "8090:5000"
+    - "8091:5000"
     depends_on:
     - webserver
+    networks:
+      - dockernet
 
   worker:
     build:
@@ -34,6 +37,8 @@ services:
     - webserver
     depends_on:
     - webserver
+    networks:
+      - dockernet
 
   worker-blazegraph-ids:
     build:
@@ -44,6 +49,8 @@ services:
     - webserver
     depends_on:
     - webserver
+    networks:
+      - dockernet
 
   worker-priority:
     build:
@@ -54,16 +61,21 @@ services:
     - webserver
     depends_on:
     - webserver
+    networks:
+      - dockernet
 
   redis:
     image: redis:3.2
     command: redis-server --appendonly yes # for persistance
     volumes:
     - /data
+    networks:
+      - dockernet
 
-  blazegraph:
-    image: superphy/blazegraph:2.1.4-inferencing
-    ports:
-    - "8080:8080"
-    volumes:
-    - /var/lib/jetty/
+networks:
+  dockernet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+          gateway: 192.168.0.1

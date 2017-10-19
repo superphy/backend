@@ -1,5 +1,5 @@
 #for secret key, do a os.urandom(24).encode('hex')
-SECRET_KEY = 'is-that-daisy'
+SECRET_KEY = '77cc1b212cc8e41be655902b0a4cca30806db5db88299e41'
 REDIS_URL = 'redis://redis:6379/0'
 # actual queues aren't defined here, they are in their respective supervisord.conf worker call
 # this is done to isolate the RQ-Blazegraph worker to avoid race conditions
@@ -43,7 +43,7 @@ namespaces = {
 #database defaults
 DATABASE_ENABLED = True
 database = {}
-database['blazegraph_url'] = 'http://blazegraph:8080/bigdata/sparql'
+database['blazegraph_url'] = 'http://192.168.0.1:9999/blazegraph/sparql'
 #database['blazegraph_url'] = 'http://localhost:9000/blazegraph/namespace/superphy/sparql'
 #### end of savvy.py stuff
 
@@ -52,4 +52,4 @@ database['blazegraph_url'] = 'http://blazegraph:8080/bigdata/sparql'
 # If you're using Sentry to collect your runtime exceptions, you can use this
 # to configure RQ for it in a single step
 # NOTE!!!: There is a bug with Raven that needs to be accounted for in RQ config. You must prefix your sentry dsn with sync+ eg 'sync+https://...' see https://github.com/nvie/rq/issues/350 . As of Mar.'17 this hasn't been fixed.
-#SENTRY_DSN = 'sync+https://public:secret@example.com/1'
+SENTRY_DSN = 'sync+https://508d71e54ad84c9483320f051cc798ce:3efb1bc16af34fe8b3e5861382a83c9c@sentry.io/135389'
