@@ -30,18 +30,20 @@ from middleware.blazegraph.reserve_id import reservation_triple
 log_file = initialize_logging()
 log = logging.getLogger(__name__)
 
+
 def get_spfyid_file():
-    '''
+    """
     Uses tempfile to store the spfyid file on disk.
     We use a mmethod so the tests can access just the file as well.
-    '''
+    """
     f = os.path.join(tempfile.gettempdir(), 'spfyid_count.txt')
     return f
 
+
 def mock_reserve_id():
-    '''
+    """
     Mocks the presence of Blazegraph to generate spfyids.
-    '''
+    """
     f = get_spfyid_file()
     log.debug('spfyid_count file returned was : ' + f)
     # check if an existing spfyid count exists
@@ -57,8 +59,9 @@ def mock_reserve_id():
         fl.write(str(spfyid))
     return spfyid
 
+
 def savvy(args_dict, return_graphs=False):
-    '''
+    """
     Mimicks the spfy pipeline without RQ backend or Blazegraph.
     Generate three turtle files:
         1. the graph of a base result for some fasta file
@@ -67,22 +70,24 @@ def savvy(args_dict, return_graphs=False):
     And two JSON files:
         1. the json result for ectyper after parsing by beautify
         2. the json result for rgi after parsing by beautify
-    '''
+    """
+
     def write_graph(graph, analysis):
-        '''
+        """
         Used to write a rdf graph to disk as a turtle file.
-        '''
+        """
         data = graph.serialize(format="turtle")
         f = query_file + '_' + analysis + '.ttl'
         with open(f, 'w') as fl:
             fl.write(data)
         return f
+
     def write_json(json_r, analysis):
-        '''
+        """
         Used to write out a .json result after processing by beautify.py
         Note that we use flask.jsonify in the backend application instead of
         the json.dump method used here.
-        '''
+        """
         f = query_file + '_' + analysis + '.json'
         with open(f, 'w') as fl:
             json.dump(json_r, fl)
@@ -108,8 +113,8 @@ def savvy(args_dict, return_graphs=False):
     shutil.copy(get_spfyid_file(), id_file)
     log.debug("id_file:" + id_file)
 
-    #Call PanPredic
-    #panpredic_p = pan(args_dict)
+    # Call PanPredic
+    # panpredic_p = pan(args_dict)
 
     # (2b) Create the reservation_triple:
     graph = generate_turtle_skeleton(query_file)
@@ -119,7 +124,7 @@ def savvy(args_dict, return_graphs=False):
     reservation_ttl = write_graph(reservation_graph, 'reservation')
 
     # (3) ECTyper Step:
-    ectyper_p = call_ectyper_vf(args_dict) # call_ectyper_vf is the older ver.
+    ectyper_p = call_ectyper_vf(args_dict)  # call_ectyper_vf is the older ver.
     log.debug("Pickled ECTyper File: " + ectyper_p)
 
     # (4) ECTyper Beautify Step:
@@ -156,9 +161,10 @@ def savvy(args_dict, return_graphs=False):
     base_ttl = write_graph(base_turtle_graph, 'base')
     log.debug('Graph Result for base of fasta info: ' + base_ttl)
     if return_graphs:
-        return (base_turtle_graph, ectyper_graph, amr_graph)
+        return base_turtle_graph, ectyper_graph, amr_graph
     else:
-        return (base_ttl, ectyper_ttl, amr_ttl, ectyper_json, amr_json)
+        return base_ttl, ectyper_ttl, amr_ttl, ectyper_json, amr_json
+
 
 if __name__ == "__main__":
     import argparse
@@ -200,7 +206,8 @@ if __name__ == "__main__":
     args_dict['i'] = os.path.abspath(args_dict['i'])
 
     # add nested dictionary to mimick output from spfy web-app
-    spfy_options = {'vf': not args_dict['disable_vf'], 'amr': not args_dict['disable_amr'], 'serotype': not args_dict['disable_serotype']}
+    spfy_options = {'vf': not args_dict['disable_vf'], 'amr': not args_dict['disable_amr'],
+                    'serotype': not args_dict['disable_serotype']}
     # the 'options' field represents things the user (of the web-app) has chosen to display, we still run ALL analysis on their files so their choices are not added to module calls (& hence kept separate)
     args_dict['options'] = spfy_options
 

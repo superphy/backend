@@ -4,6 +4,7 @@ from datetime import datetime
 # custom
 from middleware.mongo import mongo_update
 
+
 def generate_token():
     """
     Generates a bearer token for use by the front-end.
@@ -11,10 +12,11 @@ def generate_token():
     """
     now = datetime.now()
     now = now.strftime("%Y-%m-%d-%H-%M-%S-%f")
-    salt = random.randint(100000,999999)
-    seed = "{0}{1}".format(now,salt)
+    salt = random.randint(100000, 999999)
+    seed = "{0}{1}".format(now, salt)
     token = hashlib.sha1(seed).hexdigest()
     return token
+
 
 def store(token):
     """
@@ -25,6 +27,7 @@ def store(token):
     mongo_update(token, 'active', 'status')
     # Create an empty jobs dictionary for the account.
     mongo_update(token)
+
 
 def bearer():
     token = generate_token()

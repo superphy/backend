@@ -42,24 +42,23 @@ multiples_q = Queue('multiples', connection=redis_conn,
 blazegraph_q = Queue('blazegraph', connection=redis_conn)
 
 
-
 def graph_upload(graph, dict, genomeURI, region):
-    '''
+    """
     :param graph:
     :param dict:
     :param genomeURI: amr_dict
     :param region:
     :return:
-    '''
+    """
 
     graph = parse_gene_dict(graph, dict, genomeURI, region)
     upload_graph.upload_graph(graph)
 
 
 def pan_bundle(panpickle, job_pan):
-    '''
+    """
     queue the queueing dependent on panseq to finish, now we don't have to wait for panseq before queueing other tasks
-    '''
+    """
 
     pan_results = pickle.load(open(panpickle, 'rb'))
     job_dict = {}
@@ -69,27 +68,21 @@ def pan_bundle(panpickle, job_pan):
 
         for genomeURI in pan_results[region]:
 
-
-            #checks if genome URI already has a pangenome associated, if so we don't need to process it further
+            # checks if genome URI already has a pangenome associated, if so we don't need to process it further
 
             if not get_single_region(genomeURI):
-
-
-                job_pan_datastruct = multiples_q.enqueue(graph_upload, graph, pan_results[region][genomeURI], genomeURI, 'PanGenomeRegion', depends_on=job_pan)
-                job_dict[job_pan_datastruct.get_id()] = {'file' : genomeURI, 'analysis' : 'Panseq'}
-                #clears graph
+                job_pan_datastruct = multiples_q.enqueue(graph_upload, graph, pan_results[region][genomeURI], genomeURI,
+                                                         'PanGenomeRegion', depends_on=job_pan)
+                job_dict[job_pan_datastruct.get_id()] = {'file': genomeURI, 'analysis': 'Panseq'}
+                # clears graph
                 graph = generate_graph()
-
 
     return job_dict
 
 
-
-
 def blob_savvy_enqueue(single_dict):
-    '''
+    """
     Handles enqueueing of single file to multiple queues.
-    :param f: a fasta file
     :param single_dict: single dictionary of arguments
         ex. {'i': '/datastore/2017-06-30-21-53-27-595283-GCA_000023365.1_ASM2336v1_genomic.fna', 'pi': 90, 'options': {'pi': 90, 'amr': False, 'serotype': True, 'vf': True}}}
         Where `options` is the user-selected choices for serotyping and
@@ -98,9 +91,7 @@ def blob_savvy_enqueue(single_dict):
         always run ectyper in singles/backlog_singles while still returning to
         the user only what they selected.
     :return: dictionary with jobs ids and relevant headers
-    '''
-
-
+    """
 
     jobs = {}
     job_list = []
@@ -120,10 +111,7 @@ def blob_savvy_enqueue(single_dict):
     else:
         query_file = single_dict['i']
 
-
-
     def pan_pipeline(singles, multiples):
-
 
         job_dict = {}
         now = datetime.now()
@@ -131,25 +119,19 @@ def blob_savvy_enqueue(single_dict):
         pickle_file = os.path.join(current_app.config['DATASTORE'], now + '_panpickle.p')
         job_pan = singles_q.enqueue(pan, single_dict, pickle_file, depends_on=job_id)
 
-
         job_pan_id = job_pan.get_id()
 
         job_pan_bundle = singles_q.enqueue(pan_bundle, pickle_file, job_pan_id, depends_on=job_pan)
 
-        job_dict[job_pan_bundle.get_id()] = {'file' : now + '_panseq_results', 'analysis' : 'Panseq'}
-        job_dict[job_pan.get_id()] = {'file' : now + 'pan_run', 'analysis' : 'Panseq'}
+        job_dict[job_pan_bundle.get_id()] = {'file': now + '_panseq_results', 'analysis': 'Panseq'}
+        job_dict[job_pan.get_id()] = {'file': now + 'pan_run', 'analysis': 'Panseq'}
 
         return job_dict
 
-
-
     if single_dict['options']['pan']:
-
         pan_job_dict = pan_pipeline(singles_q, multiples_q)
         jobs.update(pan_job_dict)
         jobs.update(pan_jobs)
-
-
 
     #### PANPREDICT PIPELINE
 
@@ -170,9 +152,9 @@ def blob_savvy_enqueue(single_dict):
 
 
 def blob_savvy(args_dict):
-    '''
+    """
     Handles enqueuing of all files in a given directory or just a single file
-    '''
+    """
     d = {}
 
     d.update(blob_savvy_enqueue(args_dict))
@@ -181,10 +163,10 @@ def blob_savvy(args_dict):
 
 
 def spfy(args_dict):
-    '''
-    '''
+    """
+    """
     # abs path resolution should be handled in spfy.py
-    #args_dict['i'] = os.path.abspath(args_dict['i'])
+    # args_dict['i'] = os.path.abspath(args_dict['i'])
 
     jobs_dict = blob_savvy(args_dict)
 

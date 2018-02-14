@@ -1,10 +1,11 @@
 import config
 
+
 def generate_prefixes():
-    '''
+    """
     Uses namespaces defined in the config.py file to generate all the prefixes you might need in a SPARQL query.
     Returns a string.
-    '''
+    """
     s = ''
     for key in config.namespaces.keys():
         if key is 'root':

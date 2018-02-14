@@ -1,6 +1,6 @@
-'''
+"""
 This is the app factory used to geenrate an instance of the Flask app.
-'''
+"""
 
 from flask import Flask, jsonify
 
@@ -20,12 +20,14 @@ from routes.alive import bp_alive
 from routes.ra_restricted import bp_ra_restricted
 from routes.ra_accounts import bp_ra_accounts
 
+
 # Auth0
 # Error handler
 class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
+
 
 def create_app():
     app = Flask(__name__)

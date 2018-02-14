@@ -22,7 +22,6 @@ typing_ontology_version = '<https://www.github.com/superphy/typing/1.0.0>'
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 
-
 @submit
 @prefix
 def version_query(v):
@@ -42,6 +41,7 @@ def version_query(v):
         '''.format(ver=v)
 
     return query
+
 
 @tojson
 @submit
@@ -68,6 +68,7 @@ def schema_query(subtype):
 
     return query
 
+
 @tojson
 @submit
 @prefix
@@ -92,6 +93,7 @@ def subtypeset_query(subtype):
 
     return query
 
+
 @submit
 @prefix
 def subtype_query(subtype, rdftype='subt:Phylotyper'):
@@ -111,7 +113,6 @@ def subtype_query(subtype, rdftype='subt:Phylotyper'):
         '''.format(rdftype, subtype)
 
     return query
-
 
 
 def match_version(version):
@@ -179,7 +180,7 @@ def generate_graph(uri, loci, values):
 
     part = 1
     for l in loci:
-        schemapart = gu(schema_uri+'_part_{}'.format(part))
+        schemapart = gu(schema_uri + '_part_{}'.format(part))
         graph.add((schemapart, a, gu('typon:SchemaPart')))
         graph.add((schemapart, label, Literal('{} schema part {}'.format(subtype, part), lang='en')))
         graph.add((schemapart, gu('typon:index'), Literal(part, datatype=XSD.integer)))
@@ -197,7 +198,7 @@ def generate_graph(uri, loci, values):
     graph.add((subtype_set, label, Literal('{} subtype set'.format(subtype), lang='en')))
 
     for v in values:
-        setpart = gu(set_uri+'_class_{}'.format(v))
+        setpart = gu(set_uri + '_class_{}'.format(v))
         graph.add((setpart, a, gu('subt:SubtypeClass')))
         graph.add((setpart, label, Literal('{} subtype class {}'.format(subtype, v), lang='en')))
         graph.add((setpart, gu('subt:subtypeValue'), Literal(v, datatype=XSD.string)))
@@ -214,8 +215,7 @@ def stx1_graph():
 
     """
 
-    return generate_graph('subt:stx1', [':stx1A',':stx1B'], ['a','c','d','untypeable'])
-
+    return generate_graph('subt:stx1', [':stx1A', ':stx1B'], ['a', 'c', 'd', 'untypeable'])
 
 
 def stx2_graph():
@@ -224,7 +224,7 @@ def stx2_graph():
 
     """
 
-    return generate_graph('subt:stx2', [':stx2A',':stx2B'], ['a','b','c','d','e','f','g','untypeable'])
+    return generate_graph('subt:stx2', [':stx2A', ':stx2B'], ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'untypeable'])
 
 
 def eae_graph():
@@ -234,9 +234,9 @@ def eae_graph():
     """
 
     return generate_graph('subt:eae', [':eae'],
-        ["alpha-1","alpha-2","beta-1","beta-2","epsilon-1","epsilon-2","eta-1","eta-2",
-        "gamma-1","iota-1","iota-2","kappa-1","lambda-1","mu-1","nu-1","omicron-1","pi-1",
-        "rho-1","sigma-1","theta-2","xi-1","zeta-1","untypeable"])
+                          ["alpha-1", "alpha-2", "beta-1", "beta-2", "epsilon-1", "epsilon-2", "eta-1", "eta-2",
+                           "gamma-1", "iota-1", "iota-2", "kappa-1", "lambda-1", "mu-1", "nu-1", "omicron-1", "pi-1",
+                           "rho-1", "sigma-1", "theta-2", "xi-1", "zeta-1", "untypeable"])
 
 
 def load(subtype):
@@ -251,8 +251,8 @@ def load(subtype):
 
     """
 
-    func_name = subtype+'_graph'
-    uri = 'subt:'+subtype
+    func_name = subtype + '_graph'
+    uri = 'subt:' + subtype
 
     if not func_name in globals():
         raise ValuesError(subtype)
@@ -276,10 +276,10 @@ def load(subtype):
         response = upload_graph(graph)
         log.info('Upload returned response: {}'.format(response))
 
-    # Database ready to recieve phylotyper data for this subtype
+        # Database ready to recieve phylotyper data for this subtype
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()

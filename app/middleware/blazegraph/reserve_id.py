@@ -13,15 +13,15 @@ log = logging.getLogger(__name__)
 
 blazegraph_url = config.database['blazegraph_url']
 
+
 def check_duplicates(uriGenome):
-    '''
+    """
     Checks for duplicates in Blazegraph by computing genomeURI (the sha3(sorted content of file) from a graph object).
-    :param graph:
+    :param uriGenome: 
     :return: None if no duplicates found, otherwise return the int of the duplicate's spfyID
-    '''
+    """
 
-
-    #SPARQL Query
+    # SPARQL Query
     sparql = SPARQLWrapper(blazegraph_url)
     query = """
     SELECT ?spfyid WHERE {{
@@ -42,11 +42,12 @@ def check_duplicates(uriGenome):
         # would return: 2224
         return int(results['results']['bindings'][0]['spfyid']['value'].split('spfy')[1])
 
+
 def check_largest_spfyid():
-    '''
+    """
     Checks the current largest spfyID is the database (via sort of insert timestamps).
     :return: (int)
-    '''
+    """
     sparql = SPARQLWrapper(blazegraph_url)
     query = """
     SELECT ?spfyid WHERE {{
@@ -56,7 +57,8 @@ def check_largest_spfyid():
         ?genomeid <{dateIdType}> ?date .
     }}
     ORDER BY DESC(?date) LIMIT 1
-    """.format(spfyIdType=gu(':spfyId'), hasPart=gu(':hasPart'), genomeIdType=gu('g:Genome'), dateIdType=gu('ge:0000024'))
+    """.format(spfyIdType=gu(':spfyId'), hasPart=gu(':hasPart'), genomeIdType=gu('g:Genome'),
+               dateIdType=gu('ge:0000024'))
     sparql.setQuery(query)
     sparql.setReturnFormat(JSON)
     # run the query against the db
@@ -78,6 +80,7 @@ def check_largest_spfyid():
         # no result was found (fresh DB)
         return 0
 
+
 def reservation_triple(graph, uriGenome, spfyid):
     uriIsolate = gu(':spfy' + str(spfyid))
     # set object type of spfyid
@@ -89,7 +92,7 @@ def reservation_triple(graph, uriGenome, spfyid):
 
     # associatting isolate URI with assembly URI
     graph = link_uris(graph, uriIsolate, uriGenome)
-    #graph.add((uriIsolate, gu(':hasPart'), uriGenome))
+    # graph.add((uriIsolate, gu(':hasPart'), uriGenome))
     # set the object type for uriGenome
     graph.add((uriGenome, gu('rdf:type'), gu('g:Genome')))
 
@@ -103,8 +106,9 @@ def reservation_triple(graph, uriGenome, spfyid):
     graph.add((uriGenome, gu('ge:0000024'), Literal(now_accurate)))
     return graph
 
+
 def reserve_id(query_file):
-    '''
+    """
     given some fasta file:
     (1) Check for duplicates in blazegraph
     (2) If no duplicate is found, check for largest current spfyID
@@ -112,7 +116,7 @@ def reserve_id(query_file):
     (4) Upload that file to Blazegraph to reserve that spfyID
     (5) Return the spfyID to use in proceeding pipeline
     -> If a duplicate is found, just return that spfyID
-    '''
+    """
 
     # uriGenome generation
     file_hash = generate_hash(query_file)
@@ -127,21 +131,22 @@ def reserve_id(query_file):
         largest = check_largest_spfyid()
         # create a rdflib.graph object with the spfyID we want the new file to use
         graph = Graph()
-        graph = reservation_triple(graph, uriGenome, largest+1)
+        graph = reservation_triple(graph, uriGenome, largest + 1)
         # uploading the reservation graph secures the file->spfyID link
         upload_graph(graph)
         # returns the (int) of the spfyID we want the new file to use
-        return largest+1
+        return largest + 1
     else:
         # a duplicate was found, return the (int) of it's spfyID
         return duplicate
 
+
 def write_reserve_id(query_file):
-    '''
+    """
     A write function for pipeline in spfy.py to write out file.
     :param query_file:
     :return:
-    '''
+    """
     spfyid = reserve_id(query_file)
     log.info('SpfyID #:' + str(spfyid))
     id_file = os.path.abspath(query_file) + '_id.txt'
@@ -149,8 +154,10 @@ def write_reserve_id(query_file):
         f.write(str(spfyid))
     return id_file
 
+
 if __name__ == '__main__':
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", required=True)
     args = parser.parse_args()

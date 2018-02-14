@@ -33,7 +33,6 @@ import logging
 initialize_logging()
 logger = logging.getLogger(__name__)
 
-
 # the only ONE time for global variables
 # when naming queues, make sure you actually set a worker to listen to that queue
 # we use the high priority queue for things that should be immediately
@@ -52,9 +51,8 @@ if config.BACKLOG_ENABLED:
 
 
 def blob_savvy_enqueue(single_dict):
-    '''
+    """
     Handles enqueueing of single file to multiple queues.
-    :param f: a fasta file
     :param single_dict: single dictionary of arguments
         ex. {'i': '/datastore/2017-06-30-21-53-27-595283-GCA_000023365.1_ASM2336v1_genomic.fna', 'pi': 90, 'options': {'pi': 90, 'amr': False, 'serotype': True, 'vf': True}}}
         Where `options` is the user-selected choices for serotyping and
@@ -62,7 +60,7 @@ def blob_savvy_enqueue(single_dict):
         always run ectyper in singles/backlog_singles while still returning to
         the user only what they selected.
     :return: dictionary with jobs ids and relevant headers
-    '''
+    """
     jobs = {}
     query_file = single_dict['i']
 
@@ -141,6 +139,7 @@ def blob_savvy_enqueue(single_dict):
         # just enqueue the jobs, we don't care about returning them
         ectyper_jobs = ectyper_pipeline(backlog_singles_q, backlog_multiples_q)
         job_ectyper_datastruct = ectyper_jobs['job_ectyper_datastruct']
+
     # END ECTYPER PIPELINE
 
     # AMR PIPELINE
@@ -151,10 +150,12 @@ def blob_savvy_enqueue(single_dict):
         # this uploads result to blazegraph
         if single_dict['options']['bulk']:
             job_amr_datastruct = multiples.enqueue(
-                datastruct_savvy, query_file, query_file + '_id.txt', query_file + '_rgi.tsv_rgi.p', depends_on=job_amr_dict, result_ttl=-1)
+                datastruct_savvy, query_file, query_file + '_id.txt', query_file + '_rgi.tsv_rgi.p',
+                depends_on=job_amr_dict, result_ttl=-1)
         else:
             job_amr_datastruct = multiples.enqueue(
-                datastruct_savvy, query_file, query_file + '_id.txt', query_file + '_rgi.tsv_rgi.p', depends_on=job_amr_dict)
+                datastruct_savvy, query_file, query_file + '_id.txt', query_file + '_rgi.tsv_rgi.p',
+                depends_on=job_amr_dict)
         d = {'job_amr': job_amr, 'job_amr_dict': job_amr_dict,
              'job_amr_datastruct': job_amr_datastruct}
         # we still check for the user-selected amr option again because
@@ -176,12 +177,13 @@ def blob_savvy_enqueue(single_dict):
             job_amr_beautify = amr_jobs['job_amr_beautify']
     elif config.BACKLOG_ENABLED:
         amr_pipeline(backlog_multiples_q)
+
     # END AMR PIPELINE
 
     # Phylotyper Pipeline
     def phylotyper_pipeline(multiples, subtype):
 
-        jobname = '_pt' +subtype
+        jobname = '_pt' + subtype
         tsvfile = query_file + jobname + '.tsv'
         picklefile = query_file + jobname + '.p'
 
@@ -195,8 +197,8 @@ def blob_savvy_enqueue(single_dict):
             phylotyper.savvy, picklefile, subtype,
             depends_on=job_pt_dict)
 
-        d = {'job'+jobname: job_pt, 'job'+jobname+'_dict': job_pt_dict,
-             'job'+jobname+'_datastruct': job_pt_datastruct}
+        d = {'job' + jobname: job_pt, 'job' + jobname + '_dict': job_pt_dict,
+             'job' + jobname + '_datastruct': job_pt_datastruct}
         # we still check for the user-selected amr option again because
         # if it was not selected but BACKLOG_ENABLED=True, we dont have to
         # enqueue it to backlog_multiples_q since beautify doesnt upload
@@ -205,7 +207,7 @@ def blob_savvy_enqueue(single_dict):
             job_pt_beautify = multiples.enqueue(
                 phylotyper.beautify, picklefile, actual_filename(query_file),
                 depends_on=job_pt_dict, result_ttl=-1)
-            d.update({'job'+jobname+'_beautify': job_pt_beautify})
+            d.update({'job' + jobname + '_beautify': job_pt_beautify})
 
         return d
 
@@ -241,18 +243,18 @@ def blob_savvy_enqueue(single_dict):
     # to poll for completion of all jobs
     # these two ifs handle the case where amr (or vf or serotype) might not
     # be selected but bulk is
-    if (single_dict['options']['vf'] or single_dict['options']['serotype']):
+    if single_dict['options']['vf'] or single_dict['options']['serotype']:
         ret_job_ectyper = job_ectyper_datastruct
     if single_dict['options']['amr']:
         ret_job_amr = job_amr_datastruct
     # if bulk uploading isnt used, return the beautify result as the final task
     if not single_dict['options']['bulk']:
-        if (single_dict['options']['vf'] or single_dict['options']['serotype']):
+        if single_dict['options']['vf'] or single_dict['options']['serotype']:
             ret_job_ectyper = job_ectyper_beautify
         if single_dict['options']['amr']:
             ret_job_amr = job_amr_beautify
     # add the jobs to the return
-    if (single_dict['options']['vf'] or single_dict['options']['serotype']):
+    if single_dict['options']['vf'] or single_dict['options']['serotype']:
         jobs[ret_job_ectyper.get_id()] = {'file': single_dict[
             'i'], 'analysis': 'Virulence Factors and Serotype'}
     if single_dict['options']['amr']:
@@ -272,9 +274,9 @@ def blob_savvy_enqueue(single_dict):
 
 
 def blob_savvy(args_dict):
-    '''
+    """
     Handles enqueuing of all files in a given directory or just a single file
-    '''
+    """
     d = {}
     if os.path.isdir(args_dict['i']):
         for f in os.listdir(args_dict['i']):
@@ -288,13 +290,13 @@ def blob_savvy(args_dict):
 
 
 def spfy(args_dict):
-    '''
-    '''
+    """
+    """
     # abs path resolution should be handled in spfy.py
-    #args_dict['i'] = os.path.abspath(args_dict['i'])
+    # args_dict['i'] = os.path.abspath(args_dict['i'])
 
-    #print 'Starting blob_savvy call'
-    #logger.info('args_dict: ' + str(args_dict))
+    # print 'Starting blob_savvy call'
+    # logger.info('args_dict: ' + str(args_dict))
     jobs_dict = blob_savvy(args_dict)
 
     return jobs_dict

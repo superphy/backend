@@ -10,12 +10,15 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 blazegraph_url = config.database['blazegraph_url']
-#blazegraph_url = 'http://blazegraph:8080/bigdata/sparql'
+
+
+# blazegraph_url = 'http://blazegraph:8080/bigdata/sparql'
 
 def tofromHumanReadable(func):
-    '''
+    """
     Converts between to and from URIs and human-readable names.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         def parse(r):
@@ -60,6 +63,7 @@ def tofromHumanReadable(func):
                     return r
                 else:
                     return response
+
         results = func(*args, **kwargs)
         # check if we received a list or set
         if type(results) in (list, set):
@@ -75,19 +79,22 @@ def tofromHumanReadable(func):
             #     ret = l
             ret = d
         else:
-            ret = {parse(str(results)) : str(results)}
+            ret = {parse(str(results)): str(results)}
         print 'tofromHumanReadable(): Received: ' + str(results) + ' Returning: ' + str(ret)
         return ret
+
     return func_wrapper
 
+
 def tojson(func):
-    '''
+    """
     A decorator to convert JSON response of sparql query to a simple string.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
-      
+
         l = []
         for result in results['results']['bindings']:
             # create a blank dictionary per result
@@ -99,16 +106,19 @@ def tojson(func):
                 if 'datatype' in result[k] and result[k]['datatype'].endswith('XMLSchema#integer'):
                     d[k] = int(result[k]['value'])
                 else:
-                   d[k] = str(result[k]['value'])
+                    d[k] = str(result[k]['value'])
             l.append(d)
         log.debug(l)
         return l
+
     return func_wrapper
 
+
 def tostring(func):
-    '''
+    """
     A decorator to convert JSON response of sparql query to a simple string.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -121,12 +131,15 @@ def tostring(func):
                 s += (result[k]['value'])
         log.debug(s)
         return s
+
     return func_wrapper
 
+
 def toset(func):
-    '''
+    """
     A decorator to convert JSON response of sparql query to a set.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -139,12 +152,15 @@ def toset(func):
                 st.add(result[k]['value'])
         log.debug(st)
         return st
+
     return func_wrapper
 
+
 def tolist(func):
-    '''
+    """
     A decorator to convert JSON response of sparql query to a list.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -157,14 +173,17 @@ def tolist(func):
                 l.append(result[k]['value'])
         log.debug(l)
         return l
+
     return func_wrapper
 
+
 def prefix(func):
-    '''
+    """
     A decorator to add prefixes to a given query generation function.
     Uses namespaces defined in the config.py file to generate all the prefixes you might need in a SPARQL query.
     Returns a string.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         # generate prefixes
@@ -177,12 +196,15 @@ def prefix(func):
         # generate the query
         query = func(*args, **kwargs)
         return prefixes + query
+
     return func_wrapper
 
+
 def submit(func):
-    '''
+    """
     A decorator to submit a given query generation function.
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         query = func(*args, **kwargs)
@@ -193,15 +215,18 @@ def submit(func):
         results = sparql.query().convert()
         log.debug(results)
         return results
+
     return func_wrapper
 
+
 def todict(func):
-    '''
+    """
     :param : a query result in json that includes genome and assoc genes
 
     A decorator to convert json format to dict in format of {genome: [genelist]}
     when given results that are in format genome gene
-    '''
+    """
+
     @wraps(func)
     def func_wrapper(*args, **kwargs):
         results = func(*args, **kwargs)
@@ -217,4 +242,5 @@ def todict(func):
                 genome_dict[genome] = []
                 genome_dict[genome] = [pan_region]
         return genome_dict
+
     return func_wrapper

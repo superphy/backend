@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import cPickle as pickle
 
+
 def amr_to_dict(amr_file):
     amr_results = pd.read_table(amr_file)
     amr_results = amr_results[['ORF_ID', 'START', 'STOP', 'ORIENTATION', 'CUT_OFF', 'Best_Hit_ARO']]
@@ -28,14 +29,15 @@ def amr_to_dict(amr_file):
         amr_dict[contig_id].append(dict((keys, amr_results[i][keys]) for keys in (
             'START', 'STOP', 'GENE_NAME', 'ORIENTATION', 'CUT_OFF')))
 
-    amr_dict = {'Antimicrobial Resistance':amr_dict}
+    amr_dict = {'Antimicrobial Resistance': amr_dict}
 
     p = os.path.join(amr_file + '_rgi.p')
     pickle.dump(amr_dict, open(p, 'wb'))
 
     return p
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser()

@@ -16,7 +16,7 @@ bp_ra_pan = Blueprint('reactapp_pan', __name__)
 
 
 def handle_singleton(jobs_dict):
-    '''
+    """
     Takes the jobs_dict dict and creates "blob" jobs which have the QC/ID
     Reservation job ids attached to it. This allows the front-end to poll this
     "blob" + hash job and the back-end (here) will handle checking if dependencies
@@ -26,7 +26,7 @@ def handle_singleton(jobs_dict):
     to both. Also will then group by file names: so, multiple files with multiple
     jobs return a multiplicative number of "blob" ids. For example, 3 files,
     each with a Serotype/VF and a AMR job (2 jobs ea) will return 6 "blob" ids.
-    '''
+    """
     # create a dictionary of file names to append a list of relavant job hashes
     by_file = {}
     # a key should be a job id
@@ -83,8 +83,9 @@ def handle_singleton(jobs_dict):
                 blob_dict = {jobId: by_file[f][jobId]}
                 blob_dict.update({qc: by_file[f][qc]})
                 blob_dict.update({idr: by_file[f][idr]})
-                blob_ids.update(create_blob_id(f,analysis,blob_dict))
+                blob_ids.update(create_blob_id(f, analysis, blob_dict))
     return blob_ids
+
 
 @bp_ra_pan.route('/api/v0/panseq', methods=['POST'])
 def pan_upload():
@@ -92,45 +93,37 @@ def pan_upload():
     recaptcha = ReCaptcha(app=current_app)
     if recaptcha.verify():
         form = request.form
-        options = {}
+        options = {'pi': 90, 'pan': True, 'amr': False, 'vf': False, 'serotype': False, 'bulk': False}
         # defaults
-        options['pi']=90
-        options['pan'] = True
-        options['amr']=False
-        options['vf']=False
-        options['serotype']=False
-        options['bulk']=False
 
 
         # processing form data
         for key, value in form.items():
-            #we need to convert lower-case true/false in js to upper case in python
-                #remember, we also have numbers
+            # we need to convert lower-case true/false in js to upper case in python
+            # remember, we also have numbers
             if not value.isdigit():
                 if value.lower() == 'false':
                     value = False
                 else:
                     value = True
                 if key == 'options.amr':
-                    options['amr']=value
+                    options['amr'] = value
                 if key == 'options.vf':
-                    options['vf']=value
+                    options['vf'] = value
                 if key == 'options.serotype':
-                    options['serotype']=value
+                    options['serotype'] = value
                 if key == 'options.groupresults':
                     groupresults = value
                 if key == 'options.bulk':
                     options['bulk'] = value
             else:
-                if key =='options.pi':
-                    options['pi']=int(value)
+                if key == 'options.pi':
+                    options['pi'] = int(value)
 
         # get a list of files submitted
         uploaded_files = request.files.getlist("file")
 
-
-
-        #set up constants for identifying this sessions
+        # set up constants for identifying this sessions
         now = datetime.now()
         now = now.strftime("%Y-%m-%d-%H-%M-%S-%f")
         jobs_dict = {}
@@ -142,9 +135,9 @@ def pan_upload():
             if file:
                 # for saving file
                 filename = os.path.join(current_app.config[
-                                        'DATASTORE'], now + '-' + secure_filename(file.filename))
+                                            'DATASTORE'], now + '-' + secure_filename(file.filename))
                 file.save(filename)
-                #print 'Uploaded File Saved at', str(filename)
+                # print 'Uploaded File Saved at', str(filename)
 
                 if tarfile.is_tarfile(filename):
                     # set filename to dir for spfy call
@@ -156,22 +149,21 @@ def pan_upload():
                 if not options['pan']:
                     # for enqueing task
                     jobs_enqueued = spfy(
-                        {'i': filename, 'pi':options['pi'], 'options':options})
+                        {'i': filename, 'pi': options['pi'], 'options': options})
                     jobs_dict.update(jobs_enqueued)
                 else:
                     file_list.append(filename)
 
-
         # new in 4.2.0
         if options['pan']:
-            jobs_enqueued = spfy({'i': file_list, 'pi':options['pi'], 'options':options})
+            jobs_enqueued = spfy({'i': file_list, 'pi': options['pi'], 'options': options})
             jobs_dict.update(jobs_enqueued)
 
         print 'upload(): all files enqueued, returning...'
-        #if groupresults:
+        # if groupresults:
         #    return jsonify(handle_groupresults(jobs_dict))
-        #else:
+        # else:
         print('james_debug: upload return: ' + str(jobs_dict))
-        return jsonify((jobs_dict))
+        return jsonify(jobs_dict)
     else:
         return "Captcha Failed Verification", 500

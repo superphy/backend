@@ -11,6 +11,7 @@ from rdflib import URIRef
 log_file = initialize_logging()
 log = logging.getLogger(__name__)
 
+
 def handle_tar(filename, now):
     if tarfile.is_tarfile(filename):
         tar = tarfile.open(filename)
@@ -23,14 +24,15 @@ def handle_tar(filename, now):
                 # TODO: wipe temp data
         tar.extractall(path=extracted_dir)
         for fn in os.listdir(extracted_dir):
-            os.rename(extracted_dir +'/' + fn, extracted_dir +'/'+ now + '-' + fn)
+            os.rename(extracted_dir + '/' + fn, extracted_dir + '/' + now + '-' + fn)
         tar.close()
 
         # set filename to dir for spfy call
         return extracted_dir
 
-def handle_zip(filename,now):
-    z = zipfile.ZipFile(filename,'r')
+
+def handle_zip(filename, now):
+    z = zipfile.ZipFile(filename, 'r')
     extracted_dir = os.path.join(
         current_app.config['DATASTORE'] + '/' + now)
     os.mkdir(extracted_dir)
@@ -39,18 +41,19 @@ def handle_zip(filename,now):
             return 'invalid upload', 500
     z.extractall(path=extracted_dir)
     for fn in os.listdir(extracted_dir):
-        os.rename(extracted_dir +'/' + fn, extracted_dir +'/'+ now + '-' + fn)
+        os.rename(extracted_dir + '/' + fn, extracted_dir + '/' + now + '-' + fn)
     z.close()
 
     # set filename to dir for spfy call
     return extracted_dir
 
+
 def fix_uri(s):
-    '''
+    """
     Workaround: Flask's path converter allows slashes, but only a SINGLE slash.
     This adds the second slash.
     Also converts to rdflib.URIRef
-    '''
+    """
     # we perform a check for a working URI because
     # sometimes the URI is pulled directly from the db
     # when we to tofromHumanReadable() decorator
@@ -65,14 +68,15 @@ def fix_uri(s):
     uri = URIRef(s)
     return uri
 
-def to_readable(values,readable):
-    '''
+
+def to_readable(values, readable):
+    """
     Converts URI to human readable form.
     If you want the inverse, call this function with readable.inv
     Args:
         values: (list/set/string) of the value we want to convert
         readable: the bidict (this is a lib from pip). defined in blacklist.py
-    '''
+    """
     st = set()
     if type(values) in (list, set):
         for value in values:

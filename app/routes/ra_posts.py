@@ -20,9 +20,10 @@ from middleware.api import subtyping_dependencies
 
 bp_ra_posts = Blueprint('reactapp_posts', __name__)
 
+
 # for Subtyping module
 def handle_groupresults(jobs_dict):
-    '''
+    """
     if we're grouping results for the Front-End
     take all jobs in jobs_dict and store it in Redis (not RQ)
     respond with a key to fetch this jobs_dict from Redis
@@ -34,7 +35,7 @@ def handle_groupresults(jobs_dict):
         Return:
             (dict): a dictionary with key as novel jobid of form 'blob' + hash
                 meant to be parsable by same code as for old, non-grouped ver
-    '''
+    """
     print 'handle_groupresults(): started'
     # generate a novel job id
     # we prepend 'blob' so the /results path can tell its our custom object
@@ -43,12 +44,11 @@ def handle_groupresults(jobs_dict):
     # start a redis connection
     redis_url = current_app.config['REDIS_URL']
     redis_connection = redis.from_url(redis_url)
-    #with redis.from_url(redis_url) as redis_connection:
+    # with redis.from_url(redis_url) as redis_connection:
     # set the job_id: jobs_dict pair in Redis
     redis_connection.set(job_id, jobs_dict)
     # create a similar structure to the old return
-    d = {}
-    d[job_id] = {}
+    d = {job_id: {}}
     d[job_id]['analysis'] = "Subtyping"
     st = set()
     for key in jobs_dict:
@@ -61,9 +61,10 @@ def handle_groupresults(jobs_dict):
     print 'handle_groupresults(): finished'
     return d
 
+
 # for Subtyping module
 def create_blob_id(f, analysis, blob_dict):
-    '''
+    """
     Connects to Redis and creats a blob id which is the key to a dict of
     the three params.
     Return:
@@ -75,7 +76,7 @@ def create_blob_id(f, analysis, blob_dict):
              "file": "/datastore/2017-06-14-21-26-43-375215-GCA_001891695.1_ASM189169v1_genomic.fna"
              }
         }
-    '''
+    """
     # generate a novel job id
     # we prepend 'blob' so the /results path can tell its our custom object
     # and shouldnt be retrieved via RQ
@@ -83,19 +84,19 @@ def create_blob_id(f, analysis, blob_dict):
     # start a redis connection
     redis_url = current_app.config['REDIS_URL']
     redis_connection = redis.from_url(redis_url)
-    #with redis.from_url(redis_url) as redis_connection:
+    # with redis.from_url(redis_url) as redis_connection:
     # set the job_id: jobs_dict pair in Redis
     redis_connection.set(blob_id, blob_dict)
     # create a similar structure to the old return
-    d = {}
-    d[blob_id] = {}
+    d = {blob_id: {}}
     d[blob_id]['analysis'] = analysis
     d[blob_id]['file'] = f
     return d
 
+
 # for Subtyping module
 def handle_singleton(jobs_dict):
-    '''
+    """
     Takes the jobs_dict dict and creates "blob" jobs which have the QC/ID
     Reservation job ids attached to it. This allows the front-end to poll this
     "blob" + hash job and the back-end (here) will handle checking if dependencies
@@ -105,7 +106,7 @@ def handle_singleton(jobs_dict):
     to both. Also will then group by file names: so, multiple files with multiple
     jobs return a multiplicative number of "blob" ids. For example, 3 files,
     each with a Serotype/VF and a AMR job (2 jobs ea) will return 6 "blob" ids.
-    '''
+    """
     # create a dictionary of file names to append a list of relavant job hashes
     by_file = {}
     # a key should be a job id
@@ -162,8 +163,9 @@ def handle_singleton(jobs_dict):
                 blob_dict = {jobId: by_file[f][jobId]}
                 blob_dict.update({qc: by_file[f][qc]})
                 blob_dict.update({idr: by_file[f][idr]})
-                blob_ids.update(create_blob_id(f,analysis,blob_dict))
+                blob_ids.update(create_blob_id(f, analysis, blob_dict))
     return blob_ids
+
 
 # for Subtyping module
 # the /api/v0 prefix is set to allow CORS for any postfix
@@ -171,17 +173,10 @@ def handle_singleton(jobs_dict):
 def upload():
     recaptcha = ReCaptcha(app=current_app)
     if recaptcha.verify():
-        form = request.form
-
         # old file saving
         form = request.form
-        options = {}
+        options = {'amr': True, 'vf': True, 'serotype': True, 'pi': 90, 'pan': True}
         # defaults
-        options['amr']=True
-        options['vf']=True
-        options['serotype']=True
-        options['pi']=90
-        options['pan'] = True
         # new to 4.2.0
         # we consider False as default as the front-end should override this
         # to use the new feature
@@ -193,19 +188,19 @@ def upload():
 
         # processing form data
         for key, value in form.items():
-            #we need to convert lower-case true/false in js to upper case in python
-                #remember, we also have numbers
+            # we need to convert lower-case true/false in js to upper case in python
+            # remember, we also have numbers
             if not value.isdigit():
                 if value.lower() == 'false':
                     value = False
                 else:
                     value = True
                 if key == 'options.amr':
-                    options['amr']=value
+                    options['amr'] = value
                 if key == 'options.vf':
-                    options['vf']=value
+                    options['vf'] = value
                 if key == 'options.serotype':
-                    options['serotype']=value
+                    options['serotype'] = value
                 if key == 'options.groupresults':
                     groupresults = value
                 if key == 'options.groupresults':
@@ -219,17 +214,17 @@ def upload():
                 if key == 'options.bulk':
                     options['bulk'] = value
             else:
-                if key =='options.pi':
-                    options['pi']=int(value)
-                if key =='options.prob':
-                    options['prob']=float(value)
+                if key == 'options.pi':
+                    options['pi'] = int(value)
+                if key == 'options.prob':
+                    options['prob'] = float(value)
 
         # get a list of files submitted
         uploaded_files = request.files.getlist("file")
         print uploaded_files
 
         print 'upload(): about to enqueue files'
-        #set up constants for identifying this sessions
+        # set up constants for identifying this sessions
         now = datetime.now()
         now = now.strftime("%Y-%m-%d-%H-%M-%S-%f")
         jobs_dict = {}
@@ -238,7 +233,7 @@ def upload():
             if file:
                 # for saving file
                 filename = os.path.join(current_app.config[
-                                        'DATASTORE'], now + '-' + secure_filename(file.filename))
+                                            'DATASTORE'], now + '-' + secure_filename(file.filename))
                 file.save(filename)
                 print 'Uploaded File Saved at', str(filename)
 
@@ -250,7 +245,7 @@ def upload():
 
                 # for enqueing task
                 jobs_enqueued = spfy(
-                    {'i': filename, 'pi':options['pi'], 'options':options})
+                    {'i': filename, 'pi': options['pi'], 'options': options})
                 jobs_dict.update(jobs_enqueued)
         # new in 4.2.0
         print 'upload(): all files enqueued, returning...'
@@ -260,6 +255,7 @@ def upload():
             return jsonify(handle_singleton(jobs_dict))
     else:
         return "Captcha Failed Verification", 500
+
 
 # this is for the Group Comparisons (Fishers) module
 @bp_ra_posts.route('/api/v0/newgroupcomparison', methods=['POST'])

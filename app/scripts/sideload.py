@@ -3,12 +3,13 @@
 import os
 from modules.spfy import spfy
 
+
 def create_request(f):
-    '''
+    """
     Args:
         f (str): genome file with absolute path
             ex. '/datastore/GCA_001911305.1_ASM191130v1_genomic.fna'
-    '''
+    """
     # create a blank dictionary which is used as input for spfy
     d = {}
     # add defaults for options
@@ -32,6 +33,7 @@ def create_request(f):
     d['i'] = f
     return d
 
+
 def load(directory='/datastore'):
     list_files = []
     # walk the directory and grab all the files
@@ -46,6 +48,7 @@ def load(directory='/datastore'):
         spfy(d)
         p += 1
         print str(p) + '/' + str(len_files) + ' enqueued'
+
 
 if __name__ == "__main__":
     import argparse

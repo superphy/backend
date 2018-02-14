@@ -6,24 +6,28 @@ from middleware.graphers.turtle_utils import generate_uri as gu, link_uris
 from middleware.blazegraph.reserve_id import reservation_triple
 from scripts.savvy import savvy
 
+
 def write_graph(graph):
-    '''
+    """
     Used to write a rdf graph to disk as a turtle file.
-    '''
+    """
     data = graph.serialize(format="turtle")
     f = 'spfy_ontology.ttl'
     with open(f, 'w') as fl:
         fl.write(data)
     return f
 
+
 def ontology_link(graph, uri_towards_spfyid, uri_towards_marker):
     """
     Creats links that work in WebVOWL.
     """
+
     def name(uri):
         return str(uri).split('/')[-1][:3]
+
     hasPart = gu(':hasPart' + '_' + name(uri_towards_spfyid) + '_' + name(uri_towards_marker))
-    isFoundIn = gu(':isFoundIn'+ '_' + name(uri_towards_marker) + '_' + name(uri_towards_spfyid))
+    isFoundIn = gu(':isFoundIn' + '_' + name(uri_towards_marker) + '_' + name(uri_towards_spfyid))
     # hasPart:
     graph.add((
         hasPart,
@@ -64,13 +68,14 @@ def ontology_link(graph, uri_towards_spfyid, uri_towards_marker):
     ))
     return graph
 
+
 def generate_ontology(example=True):
-    '''
+    """
     Generates an ontology for the Spfy backend using utility methods used in
     production. Serializes the ontology as a turtle file, similar to faldo.ttl
     Recall that an ontology is really just a set of triples, but applied to
     classes/subclasses instead of specific instances.
-    '''
+    """
     # generates the base graph with namespaces appended to it
     # also defines edge relations for :hasPart and :isFoundIn
     # also defines subclasses for our custom types
@@ -78,7 +83,8 @@ def generate_ontology(example=True):
 
     # adds info about this ontology being generated
     graph.add((gu('https://www.github.com/superphy#'), gu('rdf:type'), gu('owl:Ontology')))
-    graph.add((gu('https://www.github.com/superphy#'), gu('dc:license'), gu('https://www.apache.org/licenses/LICENSE-2.0')))
+    graph.add(
+        (gu('https://www.github.com/superphy#'), gu('dc:license'), gu('https://www.apache.org/licenses/LICENSE-2.0')))
 
     # spfyId class
     graph.add((gu(':spfyId'), gu('rdf:type'), gu('owl:Class')))
@@ -202,6 +208,7 @@ def generate_ontology(example=True):
 
     return graph
 
+
 def generate_example(args_dict):
     ontology_graph = generate_ontology(example=True)
     savvy_graphs = savvy(args_dict=args_dict, return_graphs=True)
@@ -209,8 +216,9 @@ def generate_example(args_dict):
         ontology_graph = ontology_graph + g
     return ontology_graph
 
+
 def main(args_dict):
-    if 'i' in args_dict and args_dict['i'] != None:
+    if 'i' in args_dict and args_dict['i'] is not None:
         # Then a file was supplied so we generate the ontology with an example.
         g = generate_example(args_dict)
         return write_graph(g)
@@ -219,6 +227,7 @@ def main(args_dict):
         # Generate the base ontology.
         g = generate_ontology(example=False)
         return write_graph(g)
+
 
 if __name__ == '__main__':
     import argparse
@@ -255,11 +264,12 @@ if __name__ == '__main__':
     args_dict = vars(args)
 
     # check/convert file to abspath
-    if 'i' in args_dict and args_dict['i'] != None:
+    if 'i' in args_dict and args_dict['i'] is not None:
         args_dict['i'] = os.path.abspath(args_dict['i'])
 
     # add nested dictionary to mimick output from spfy web-app
-    spfy_options = {'vf': not args_dict['disable_vf'], 'amr': not args_dict['disable_amr'], 'serotype': not args_dict['disable_serotype']}
+    spfy_options = {'vf': not args_dict['disable_vf'], 'amr': not args_dict['disable_amr'],
+                    'serotype': not args_dict['disable_serotype']}
     # the 'options' field represents things the user (of the web-app) has chosen to display, we still run ALL analysis on their files so their choices are not added to module calls (& hence kept separate)
     args_dict['options'] = spfy_options
 

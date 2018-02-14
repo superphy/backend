@@ -4,6 +4,8 @@ from middleware.graphers.turtle_utils import generate_uri as gu, generate_hash, 
 from middleware.graphers.turtle_grapher import generate_graph
 from middleware.blazegraph.upload_graph import queue_upload
 from modules.PanPredic.pan_utils import contig_name_parse
+
+
 # working with Serotype, Antimicrobial Resistance, & Virulence Factor data
 # structures
 
@@ -22,7 +24,7 @@ def parse_serotype(graph, serotyper_dict, uriIsolate):
 
 
 def parse_gene_dict(graph, gene_dict, uriGenome, geneType):
-    '''
+    """
     My intention is to eventually use ECTyper for all of the calls it was meant for.
     Just need to update ECTyper dict format to ref. AMR / VF by contig. as opposed to genome directly.
 
@@ -45,11 +47,15 @@ def parse_gene_dict(graph, gene_dict, uriGenome, geneType):
 
 
     TODO: merge common components with generate_amr()
-    '''
+    :param graph: 
+    :param gene_dict: 
+    :param uriGenome: 
+    :param geneType: 
+    """
 
     for contig_id in gene_dict:
-        #makes sure that the contigs are named correctly
-        #contig_name = contig_name_parse(contig_id)
+        # makes sure that the contigs are named correctly
+        # contig_name = contig_name_parse(contig_id)
         '''
         if contig_name != contig_id:
             gene_dict[contig_name] = gene_dict[contig_id]
@@ -58,14 +64,12 @@ def parse_gene_dict(graph, gene_dict, uriGenome, geneType):
         for gene_record in gene_dict[contig_id]:
             # uri for bag of contigs
             # ex. :4eb02f5676bc808f86c0f014bbce15775adf06ba/contigs/
-            #make sure that uriGenome is a genome and not a string
+            # make sure that uriGenome is a genome and not a string
             uriGenomes = gu(uriGenome)
             uriContigs = gu(uriGenomes, "/contigs")
             # recreating the contig uri
 
             uriContig = gu(uriContigs, '/' + contig_id)
-
-
 
             # after this point we switch perspective to the gene and build down to
             # relink the gene with the contig
@@ -83,8 +87,8 @@ def parse_gene_dict(graph, gene_dict, uriGenome, geneType):
             # define the object type of Region
             start_position = gene_record['START']
             stop_position = gene_record['STOP']
-            allele_uri = '/'.join((str(gene_name), str(start_position)+'-'+str(stop_position)))
-            region = gu(uriContig, '/'+allele_uri)
+            allele_uri = '/'.join((str(gene_name), str(start_position) + '-' + str(stop_position)))
+            region = gu(uriContig, '/' + allele_uri)
 
             graph.add((region, gu('rdf:type'), gu('faldo:Region')))
             # link the region (eg. the occurance of the gene in a contig)
@@ -139,22 +143,23 @@ def parse_gene_dict(graph, gene_dict, uriGenome, geneType):
 
             graph = link_uris(graph, uriContig, bnode_start)
             graph = link_uris(graph, uriContig, bnode_end)
-            #graph.add((bnode_start, gu(':hasPart'), uriContig))
-            #graph.add((bnode_end, gu(':hasPart'), uriContig))
+            # graph.add((bnode_start, gu(':hasPart'), uriContig))
+            # graph.add((bnode_end, gu(':hasPart'), uriContig))
 
     #### end of nested for
 
     return graph
 
+
 def generate_datastruct(query_file, id_file, pickled_dictionary):
-    '''
+    """
     This is simply to decouple the graph generation code from the
     upload code. In RQ backend, the datastruct_savvy() method is called
     where-as in savvy.py (without RQ or Blazegraph) only compute_datastruct()
     is called. The return type must be the same in datastruct_savvy to
     maintain backwards compatability, hence most of the code is stored here
     instead.
-    '''
+    """
     # Base graph generation
     graph = generate_graph()
 
@@ -174,21 +179,24 @@ def generate_datastruct(query_file, id_file, pickled_dictionary):
     # graphing functions
     for key in results_dict.keys():
         if key == 'Serotype':
-            graph = parse_serotype(graph,results_dict['Serotype'],uriIsolate)
+            graph = parse_serotype(graph, results_dict['Serotype'], uriIsolate)
         elif key == 'Virulence Factors':
             graph = parse_gene_dict(graph, results_dict['Virulence Factors'], uriGenome, 'VirulenceFactor')
         elif key == 'Antimicrobial Resistance':
             graph = parse_gene_dict(graph, results_dict['Antimicrobial Resistance'], uriGenome,
                                     'AntimicrobialResistanceGene')
-        #elif key == 'PanGenomeRegion':
-         #   graph = parse_gene_dict(graph, results_dict[key], uriGenome, key)
+            # elif key == 'PanGenomeRegion':
+            #   graph = parse_gene_dict(graph, results_dict[key], uriGenome, key)
 
     return graph
+
 
 def datastruct_savvy(query_file, id_file, pickled_dictionary):
     """
     Note: we work we base graphs (those generated solely from the fasta file) and result graphs (those generated from analysis modules (RGI/ECtyper) separately - they are only linked once uploaded to blazegraph
-    :param args_dict:
+    :param query_file: 
+    :param id_file: 
+    :param pickled_dictionary: 
     :return:
     """
     graph = generate_datastruct(query_file, id_file, pickled_dictionary)

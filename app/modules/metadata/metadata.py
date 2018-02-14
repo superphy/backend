@@ -8,7 +8,8 @@ from middleware.blazegraph.upload_graph import upload_graph
 from modules.metadata.mappings import mapping
 
 d = {'Human': 'http://purl.bioontology.org/ontology/NCBITAXON/9606',
-    'Bovine': 'http://purl.bioontology.org/ontology/NCBITAXON/9913'}
+     'Bovine': 'http://purl.bioontology.org/ontology/NCBITAXON/9913'}
+
 
 def parse(column_header, cell_value, sid, graph):
     try:
@@ -18,17 +19,18 @@ def parse(column_header, cell_value, sid, graph):
         graph.add((gu(sid), gu(d['relation']), Literal(cell_value)))
         # Add a human-readable description of the relation type, if it's defined.
         if d['human_readable']:
-            graph.add((gu(d['relation']),gu('dc:description'), Literal(d['human_readable'])))
+            graph.add((gu(d['relation']), gu('dc:description'), Literal(d['human_readable'])))
     except:
         # The column_header wasn't found in mapping.
         pass
     return graph
 
+
 def read(filename):
-    '''
+    """
     Args:
         filename(Str): an absolute path to the file
-    '''
+    """
     extension = filename.split('.')[-1]
     # Check we support the filetype.
     assert extension in ('xls', 'xlsx', 'csv')
@@ -38,7 +40,8 @@ def read(filename):
     else:
         return pd.read_csv(filename)
 
-def generate_metadata_graph(df, spfyid = None):
+
+def generate_metadata_graph(df, spfyid=None):
     graph = Graph()
     for f in df.filename:
         # Resolve the spfyid for that file.
@@ -53,7 +56,7 @@ def generate_metadata_graph(df, spfyid = None):
             # take the first (and only) spfyid
             sid = str(spfyid.pop())
             # Retrieve the row specific to that filename.
-            row = df[df.filename==f]
+            row = df[df.filename == f]
             # Iterate through the column headers.
             for column_header in row:
                 # Grab the value at that cell.
@@ -74,6 +77,7 @@ def generate_metadata_graph(df, spfyid = None):
                         # Otherise, the normal.
                         graph = parse(column_header, cell_value, sid, graph)
     return graph
+
 
 def upload_metadata(filename):
     df = read(filename)

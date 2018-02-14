@@ -12,6 +12,7 @@ from modules.loggingFunctions import initialize_logging
 log_file = initialize_logging()
 log = logging.getLogger(__name__)
 
+
 def call_ectyper_vf(args_dict):
     """ Use the old version of ECTyper at `superphy` for VF.
     """
@@ -20,7 +21,7 @@ def call_ectyper_vf(args_dict):
 
     if args_dict['options']['vf']:
         # Workaround to allow ECTYPER to run in Docker.
-        filepath=(args_dict['i'])
+        filepath = (args_dict['i'])
         wrapper_dir = os.path.dirname(os.path.abspath(__file__))
         # This temp file path is required for ectyper.
         temp = tempfile.NamedTemporaryFile()
@@ -28,7 +29,7 @@ def call_ectyper_vf(args_dict):
         shutil.copyfile(args_dict['i'], temp.name)
         # Create a copy of args_dict and update with the tempfile.
         args_dict = dict(args_dict)
-        args_dict['i']= temp.name
+        args_dict['i'] = temp.name
         log.debug(temp.name)
 
         ectyper_path = os.path.join(wrapper_dir, 'ecoli_serotyping/src/Tools_Controller/tools_controller.py')
@@ -36,9 +37,9 @@ def call_ectyper_vf(args_dict):
         ectyper_dict = subprocess.check_output([ectyper_path,
                                                 '-in', args_dict['i'],
                                                 '-s', str(
-                                                    int(args_dict['options']['serotype'])),
+                int(args_dict['options']['serotype'])),
                                                 '-vf', str(
-                                                    int(args_dict['options']['vf'])),
+                int(args_dict['options']['vf'])),
                                                 '-pi', str(args_dict['pi'])
                                                 ])
         # Removing that temp file we created.
@@ -58,24 +59,25 @@ def call_ectyper_vf(args_dict):
         key, ectyper_dict = ectyper_dict.popitem()
 
         p = os.path.join(filepath + '_ectyper_vf.p')
-        pickle.dump(ectyper_dict,open(p,'wb'))
+        pickle.dump(ectyper_dict, open(p, 'wb'))
 
     return p
+
 
 def call_ectyper_serotype(args_dict):
     """Use the new version of ECTyper at `master` for serotyping.
     """
     genome_file = args_dict['i']
-    pi = str(args_dict['pi']) # Cast to str to execvp() in subprocess().
-    pl = '50' # This is the default in ECTyper.
+    pi = str(args_dict['pi'])  # Cast to str to execvp() in subprocess().
+    pl = '50'  # This is the default in ECTyper.
     output_dir = tempfile.mkdtemp()
     ret_code = subprocess.call([
         "ectyper",
         "-i",
         genome_file,
-        "-d", # Percent Identity
+        "-d",  # Percent Identity
         pi,
-        "-l", # Percent Length
+        "-l",  # Percent Length
         pl,
         "-o",
         output_dir

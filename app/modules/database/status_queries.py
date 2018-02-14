@@ -6,13 +6,14 @@ from middleware.decorators import tojson, prefix, submit
 log_file = initialize_logging()
 log = logging.getLogger(__name__)
 
+
 @tojson
 @submit
 @prefix
 def query_db_status():
-    '''
+    """
     Grabs all objectids having the relation.
-    '''
+    """
     query = """
     SELECT DISTINCT ?spfyId ?Genome ?otype ?htype ?submitted WHERE {{
         ?spfyIdObject a :spfyId ; dc:identifier ?spfyId .
@@ -25,6 +26,7 @@ def query_db_status():
     }}
     """
     return query
+
 
 if __name__ == "__main__":
     print query_everything()

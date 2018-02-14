@@ -1,17 +1,18 @@
-def pair(relation, human_readable = None):
-    '''
+def pair(relation, human_readable=None):
+    """
     Creates a dictionary pair of a relation uri in string form and a human readable equivalent.
     Args:
         relation (str): This should be preformated so generate_uri works on it
         human_readable (str): a plain-text description of the uri
     Return:
         d (dictionary)
-    '''
+    """
     d = {
         'relation': relation,
         'human_readable': human_readable
     }
     return d
+
 
 # In this mapping, outer dictionary key represents the column header in the csv.
 # We use the same header as the human-readable description so users are

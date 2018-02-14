@@ -9,9 +9,9 @@ from rq import Queue
 
 
 def fetch_job(job_id, redis_connection=None):
-    '''
+    """
     Iterates through all queues looking for the job.
-    '''
+    """
     if not redis_connection:
         redis_connection = redis.from_url(current_app.config['REDIS_URL'])
     queues = current_app.config['QUEUES_SPFY']
@@ -25,11 +25,11 @@ def fetch_job(job_id, redis_connection=None):
 
 
 class Job(object):
-    '''
+    """
     A class to mimick the Job object returned by RQ's Queue.fetch_job()
     We use this to create custom Jobs with our own error messages.
     This allows custom error messages to be parsed by the same code.
-    '''
+    """
 
     def __init__(self, is_finished=False, result='', is_failed=False, exc_info=''):
         self.is_finished = is_finished

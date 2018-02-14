@@ -12,14 +12,15 @@ from rdflib import Namespace, Graph, Literal, plugin
 from Bio import SeqIO
 from os.path import basename
 
+
 def generate_graph(transitive=True):
-    '''
+    """
     Parses all the Namespaces defined in the config file and returns a graph
     with them bound.
 
     Return:
         (rdflib.Graph): a graph with all the defined Namespaces bound to it.
-    '''
+    """
 
     graph = Graph()
 
@@ -33,7 +34,7 @@ def generate_graph(transitive=True):
     if transitive:
         graph.add((gu(':hasPart'), gu('rdf:type'), gu('owl:TransitiveProperty')))
         graph.add((gu(':isFoundIn'), gu('rdf:type'), gu('owl:TransitiveProperty')))
-    #graph.add((gu(':hasPart'), gu('rdf:type'), gu('owl:SymmetricProperty')))
+    # graph.add((gu(':hasPart'), gu('rdf:type'), gu('owl:SymmetricProperty')))
 
     # make AntimicrobialResistanceGene & VirulenceFactor subclasses of :Marker
     graph.add((gu(':AntimicrobialResistanceGene'), gu('rdfs:subClassOf'), gu(':Marker')))
@@ -53,8 +54,9 @@ def generate_graph(transitive=True):
 
     return graph
 
+
 def generate_turtle_skeleton(query_file):
-    '''
+    """
     Handles the main generation of a turtle object.
 
     NAMING CONVENTIONS:
@@ -70,7 +72,7 @@ def generate_turtle_skeleton(query_file):
        query_file(str): path to the .fasta file (this should already incl the directory)
     Returns:
         graph: the graph with all the triples generated from the .fasta file
-    '''
+    """
     # Base graph generation
     graph = generate_graph()
 
@@ -90,7 +92,7 @@ def generate_turtle_skeleton(query_file):
     graph.add((uriContigs, gu('rdf:type'), gu('so:0001462')))
     # link the bag of contigs to the genome
     graph = link_uris(graph, uriGenome, uriContigs)
-    #graph.add((uriGenome, gu(':hasPart'), uriContigs))
+    # graph.add((uriGenome, gu(':hasPart'), uriContigs))
 
     for record in SeqIO.parse(open(query_file), "fasta"):
         # ex. :4eb02f5676bc808f86c0f014bbce15775adf06ba/contigs/FLOF01006689.1
@@ -99,7 +101,7 @@ def generate_turtle_skeleton(query_file):
         graph.add((uriContig, gu('rdf:type'), gu('g:Contig')))
         # linking the spec contig and the bag of contigs
         graph = link_uris(graph, uriContigs, uriContig)
-        #graph.add((uriContigs, gu(':hasPart'), uriContig))
+        # graph.add((uriContigs, gu(':hasPart'), uriContig))
         # uriContig attributes
         graph.add((uriContig, gu('g:DNASequence'), Literal(record.seq)))
         graph.add((uriContig, gu('g:Description'),
@@ -112,6 +114,7 @@ def generate_turtle_skeleton(query_file):
         graph.add((uriContig, gu('dc:description'),
                    Literal(record.description)))
     return graph
+
 
 def turtle_grapher(query_file):
     graph = generate_turtle_skeleton(query_file)

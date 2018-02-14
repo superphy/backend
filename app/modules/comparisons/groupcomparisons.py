@@ -9,32 +9,37 @@ from middleware.decorators import tofromHumanReadable
 log_file = initialize_logging()
 log = logging.getLogger(__name__)
 
+
 def convert(value):
     """
     Used to convert the human-readable string back into a proper URI.
     """
+
     @tofromHumanReadable
     def todict(q):
         return q
+
     d = todict(value)
     return d.keys()
 
+
 def collapse(dict_targets):
-    '''
+    """
     Collapses all targets into a dictionary mapping each target to a set of the spfyIds its found in.
     Arg:
         dict_targets: (dict) of structure {spfyid: set(targets)}
-    '''
+    """
     # define the base dictionary
     d = {}
     for spfyid, set_targets in dict_targets.iteritems():
         for target in set_targets:
             if target not in d.keys():
                 # then that gene has not spfyId assoc. with it yet
-                d[target] = set([spfyid])
+                d[target] = {spfyid}
             else:
                 d[target].add(spfyid)
     return d
+
 
 def groupcomparisons(groups, target):
     # # convert the target from its human-readable string as displayed
@@ -108,7 +113,7 @@ def groupcomparisons(groups, target):
             # attribute
             queryAttributeUris[index] += query['attribute'] + ' '
             # logical operator
-            if len(group) > 1 and i < len(group)-1 and 'logical' in query.keys():
+            if len(group) > 1 and i < len(group) - 1 and 'logical' in query.keys():
                 queryAttributeUris[index] += query['logical'] + ' '
         queryAttributeUris[index] = queryAttributeUris[index].strip()
 
@@ -119,61 +124,63 @@ def groupcomparisons(groups, target):
     df['target'] = df['target'].apply(convert)
     return df.to_json(orient='split')
 
+
 if __name__ == "__main__":
     import time
-    # test for OR
-    da1 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O157",
-    "logical":"OR"}
-    da2 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O136"}
-    da = [da1,da2]
 
-    db1 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O84",
-    "logical":"OR"}
-    db2 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O54"}
-    db = [db1,db2]
+    # test for OR
+    da1 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O157",
+           "logical": "OR"}
+    da2 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O136"}
+    da = [da1, da2]
+
+    db1 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O84",
+           "logical": "OR"}
+    db2 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O54"}
+    db = [db1, db2]
 
     target = "https://www.github.com/superphy#Marker"
 
     start = time.time()
-    log.info([da,db])
-    log.info(groupcomparisons([da,db], target))
+    log.info([da, db])
+    log.info(groupcomparisons([da, db], target))
     stop = time.time()
-    log.info(stop-start)
+    log.info(stop - start)
 
     ## test NOT
-    da1 = {"negated":True,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O157",
-    "logical":"OR"}
-    da2 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O136"}
-    da = [da1,da2]
+    da1 = {"negated": True, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O157",
+           "logical": "OR"}
+    da2 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O136"}
+    da = [da1, da2]
 
-    db1 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O84",
-    "logical":"OR"}
-    db2 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O54"}
-    db = [db1,db2]
+    db1 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O84",
+           "logical": "OR"}
+    db2 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O54"}
+    db = [db1, db2]
 
     target = "https://www.github.com/superphy#Marker"
 
     start = time.time()
-    log.info([da,db])
-    log.info(groupcomparisons([da,db], target))
+    log.info([da, db])
+    log.info(groupcomparisons([da, db], target))
     stop = time.time()
-    log.info(stop-start)
+    log.info(stop - start)
 
     ## test AND with NO with  non direct link
-    da1 = {"negated":True,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O157",
-    "logical":"AND"}
-    da2 = {"negated":False,"relation":"http://www.biointerchange.org/gfvo#Identifier","attribute":"LGNE01000001.1"}
-    da = [da1,da2]
+    da1 = {"negated": True, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O157",
+           "logical": "AND"}
+    da2 = {"negated": False, "relation": "http://www.biointerchange.org/gfvo#Identifier", "attribute": "LGNE01000001.1"}
+    da = [da1, da2]
 
-    db1 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O84",
-    "logical":"OR"}
-    db2 = {"negated":False,"relation":"http://purl.obolibrary.org/obo/GENEPIO_0001076","attribute":"O54"}
-    db = [db1,db2]
+    db1 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O84",
+           "logical": "OR"}
+    db2 = {"negated": False, "relation": "http://purl.obolibrary.org/obo/GENEPIO_0001076", "attribute": "O54"}
+    db = [db1, db2]
 
     target = "https://www.github.com/superphy#Marker"
 
     start = time.time()
-    log.info([da,db])
-    log.info(groupcomparisons([da,db], target))
+    log.info([da, db])
+    log.info(groupcomparisons([da, db], target))
     stop = time.time()
-    log.info(stop-start)
+    log.info(stop - start)

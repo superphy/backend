@@ -18,9 +18,10 @@ from middleware.graphers.turtle_grapher import turtle_grapher
 
 from tests.constants import ARGS_DICT
 
+
 # utility function to generate full path (still relative to root, not absoulte) for files in directories
 def listdir_fullpath(d):
-    valid_extensions = ('.fasta','.fna')
+    valid_extensions = ('.fasta', '.fna')
     l = []
     for f in os.listdir(d):
         filename, file_extension = os.path.splitext(f)
@@ -28,10 +29,12 @@ def listdir_fullpath(d):
             l.append(os.path.join(d, f))
     return l
 
+
 # globals for testing
 GENOMES_LIST_NOT_ECOLI = listdir_fullpath('tests/notEcoli')
 GENOMES_LIST_ECOLI = listdir_fullpath('tests/ecoli')
 GENOMES_LIST_HEADERS = listdir_fullpath('tests/headers')
+
 
 #### Non-Blazegraph/RQ Tests
 
@@ -41,6 +44,7 @@ def test_ecoli_checking():
         assert check_ecoli(ecoli_genome) == True
     for non_ecoli_genome in GENOMES_LIST_NOT_ECOLI:
         assert check_ecoli(non_ecoli_genome) == False
+
 
 # QC-related test.
 def test_header_parsing():
@@ -52,12 +56,14 @@ def test_header_parsing():
     for ecoli_genome in GENOMES_LIST_HEADERS:
         assert check_header_parsing(ecoli_genome) == True
 
+
 # QC-related test.
 def test_qc():
     for ecoli_genome in GENOMES_LIST_ECOLI:
         assert qc(ecoli_genome) == True
     for non_ecoli_genome in GENOMES_LIST_NOT_ECOLI:
         assert qc(non_ecoli_genome) == False
+
 
 def test_ectyper_vf():
     """Check the ECTyper from `superphy` which is used for virulance factor
@@ -66,14 +72,15 @@ def test_ectyper_vf():
     for ecoli_genome in GENOMES_LIST_ECOLI:
         # basic ECTyper check
         single_dict = dict(ARGS_DICT)
-        single_dict.update({'i':ecoli_genome})
+        single_dict.update({'i': ecoli_genome})
         pickled_ectyper_dict = call_ectyper_vf(single_dict)
-        ectyper_dict = pickle.load(open(pickled_ectyper_dict,'rb'))
+        ectyper_dict = pickle.load(open(pickled_ectyper_dict, 'rb'))
         assert type(ectyper_dict) == dict
 
         # beautify ECTyper check
         json_return = beautify(single_dict, pickled_ectyper_dict)
         assert type(json_return) == list
+
 
 def test_ectyper_serotype():
     """Check the ECTyper from `master` which only performs serotyping.
@@ -86,25 +93,26 @@ def test_ectyper_serotype():
 
         # Check the actual call from Spfy's code.
         single_dict = dict(ARGS_DICT)
-        single_dict.update({'i':ecoli_genome})
+        single_dict.update({'i': ecoli_genome})
         serotype_csv = call_ectyper_serotype(single_dict)
         ectyper_serotype_df = pd.read_csv(serotype_csv)
         assert isinstance(ectyper_serotype_df, pd.DataFrame)
 
+
 def test_amr():
-        ecoli_genome = GENOMES_LIST_ECOLI[0]
-        # this generates the .tsv
-        pickled_amr_tsv = amr(ecoli_genome)
-        filename, file_extension = os.path.splitext(pickled_amr_tsv)
-        assert file_extension == '.tsv'
+    ecoli_genome = GENOMES_LIST_ECOLI[0]
+    # this generates the .tsv
+    pickled_amr_tsv = amr(ecoli_genome)
+    filename, file_extension = os.path.splitext(pickled_amr_tsv)
+    assert file_extension == '.tsv'
 
-        # convert the tsv to a directory
-        pickled_amr_dict = amr_to_dict(pickled_amr_tsv)
-        amr_dict = pickle.load(open(pickled_amr_dict,'rb'))
-        assert type(amr_dict) == dict
+    # convert the tsv to a directory
+    pickled_amr_dict = amr_to_dict(pickled_amr_tsv)
+    amr_dict = pickle.load(open(pickled_amr_dict, 'rb'))
+    assert type(amr_dict) == dict
 
-        # beautify amr check
-        single_dict = dict(ARGS_DICT)
-        single_dict.update({'i':ecoli_genome})
-        json_return = beautify(single_dict,pickled_amr_dict)
-        assert type(json_return) == list
+    # beautify amr check
+    single_dict = dict(ARGS_DICT)
+    single_dict.update({'i': ecoli_genome})
+    json_return = beautify(single_dict, pickled_amr_dict)
+    assert type(json_return) == list

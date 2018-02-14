@@ -7,13 +7,16 @@ from tests.constants import ARGS_DICT, BEAUTIFY_VF_SEROTYPE
 
 vf_serotype_gene_dict = os.path.join('tests/refs', 'GCA_000005845.2_ASM584v2_genomic.fna_ectyper-vf_serotype.p')
 
-amr_gene_dict = os.path.join('tests/refs', '2017-05-21-00-29-20-874628-GCA_000005845.2_ASM584v2_genomic.fna_rgi.tsv_rgi.p')
+amr_gene_dict = os.path.join('tests/refs',
+                             '2017-05-21-00-29-20-874628-GCA_000005845.2_ASM584v2_genomic.fna_rgi.tsv_rgi.p')
+
 
 def test_beautify_vf_serotype():
     ## test vf & serotype json return
     single_dict = dict(ARGS_DICT)
     single_dict.update({'i': vf_serotype_gene_dict})
     assert len(beautify(single_dict, vf_serotype_gene_dict)) == len(BEAUTIFY_VF_SEROTYPE)
+
 
 def test_beautify_serotype_only():
     ## test serotype only json return
@@ -22,16 +25,17 @@ def test_beautify_serotype_only():
     single_dict = dict(ARGS_DICT)
     single_dict.update({'i': vf_serotype_gene_dict})
     # this mimicks user selection of serotype only
-    single_dict.update({'options':{'vf': False, 'amr': False, 'serotype': True}})
+    single_dict.update({'options': {'vf': False, 'amr': False, 'serotype': True}})
     # beautify is what is actually called by the RQ worker & returned to the user
     r = beautify(single_dict, vf_serotype_gene_dict)
     assert len(r) == 1
+
 
 def test_beautify_json_r_serotype_only():
     single_dict = dict(ARGS_DICT)
     single_dict.update({'i': vf_serotype_gene_dict})
     # this mimicks user selection of serotype only
-    single_dict.update({'options':{'vf': False, 'amr': False, 'serotype': True}})
+    single_dict.update({'options': {'vf': False, 'amr': False, 'serotype': True}})
     ## test json_r separately of failed handling
     # json_return() is a part of the beautify work
     gene_dict = pickle.load(open(vf_serotype_gene_dict, 'rb'))
@@ -43,19 +47,21 @@ def test_beautify_json_r_serotype_only():
     failed = has_failed(r)
     assert failed == False
 
+
 def test_beautify_amr_only():
     single_dict = dict(ARGS_DICT)
     single_dict.update({'i': amr_gene_dict})
     # this mimicks user selection of serotype only
-    single_dict.update({'options':{'vf': False, 'amr': True, 'serotype': False}})
+    single_dict.update({'options': {'vf': False, 'amr': True, 'serotype': False}})
     r = beautify(single_dict, amr_gene_dict)
     assert len(r) > 1
+
 
 def test_beautify_json_r_amr_only():
     single_dict = dict(ARGS_DICT)
     single_dict.update({'i': amr_gene_dict})
     # this mimicks user selection of serotype only
-    single_dict.update({'options':{'vf': False, 'amr': True, 'serotype': False}})
+    single_dict.update({'options': {'vf': False, 'amr': True, 'serotype': False}})
     gene_dict = pickle.load(open(amr_gene_dict, 'rb'))
     assert type(gene_dict) == dict
     assert len(gene_dict.keys()) == 1
